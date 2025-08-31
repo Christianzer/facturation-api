@@ -1,0 +1,673 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-08-31T10:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v8.6.1",
+  "resources": [
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:3000",
+        "jwt_token": ""
+      }
+    },
+    {
+      "_id": "workspace",
+      "_type": "workspace",
+      "name": "Facturation App - API Tests",
+      "description": "Collection complète pour tester l'API de l'application de facturation NestJS"
+    },
+    {
+      "_id": "folder_auth",
+      "_type": "request_group",
+      "parentId": "workspace",
+      "name": "🔐 Authentification"
+    },
+    {
+      "_id": "req_register",
+      "_type": "request",
+      "parentId": "folder_auth",
+      "name": "Inscription utilisateur",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/register",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"test@example.com\",\n  \"firstName\": \"Jean\",\n  \"lastName\": \"Dupont\",\n  \"password\": \"motdepasse123\"\n}"
+      }
+    },
+    {
+      "_id": "req_login",
+      "_type": "request",
+      "parentId": "folder_auth",
+      "name": "Connexion utilisateur",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/login",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"motdepasse123\"\n}"
+      }
+    },
+    {
+      "_id": "folder_users",
+      "_type": "request_group",
+      "parentId": "workspace",
+      "name": "👥 Utilisateurs"
+    },
+    {
+      "_id": "req_users_create",
+      "_type": "request",
+      "parentId": "folder_users",
+      "name": "Créer un utilisateur",
+      "method": "POST",
+      "url": "{{ _.base_url }}/users",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"nouvel@utilisateur.com\",\n  \"firstName\": \"Marie\",\n  \"lastName\": \"Martin\",\n  \"password\": \"motdepasse123\"\n}"
+      }
+    },
+    {
+      "_id": "req_users_list",
+      "_type": "request",
+      "parentId": "folder_users",
+      "name": "Lister tous les utilisateurs",
+      "method": "GET",
+      "url": "{{ _.base_url }}/users",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_users_get",
+      "_type": "request",
+      "parentId": "folder_users",
+      "name": "Obtenir un utilisateur par ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/users/USER_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_users_update",
+      "_type": "request",
+      "parentId": "folder_users",
+      "name": "Modifier un utilisateur",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/users/USER_ID",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"firstName\": \"Marie\",\n  \"lastName\": \"Dubois\"\n}"
+      }
+    },
+    {
+      "_id": "req_users_delete",
+      "_type": "request",
+      "parentId": "folder_users",
+      "name": "Supprimer un utilisateur",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/users/USER_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "folder_customers",
+      "_type": "request_group",
+      "parentId": "workspace",
+      "name": "🏢 Clients"
+    },
+    {
+      "_id": "req_customers_create",
+      "_type": "request",
+      "parentId": "folder_customers",
+      "name": "Créer un client",
+      "method": "POST",
+      "url": "{{ _.base_url }}/customers",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Entreprise ACME\",\n  \"email\": \"contact@acme.fr\",\n  \"phone\": \"+33123456789\",\n  \"address\": \"123 Rue de la Paix\",\n  \"city\": \"Paris\",\n  \"postalCode\": \"75001\",\n  \"country\": \"France\",\n  \"siret\": \"12345678901234\",\n  \"vatNumber\": \"FR12345678901\",\n  \"isActive\": true\n}"
+      }
+    },
+    {
+      "_id": "req_customers_list",
+      "_type": "request",
+      "parentId": "folder_customers",
+      "name": "Lister tous les clients",
+      "method": "GET",
+      "url": "{{ _.base_url }}/customers",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_customers_active",
+      "_type": "request",
+      "parentId": "folder_customers",
+      "name": "Lister les clients actifs",
+      "method": "GET",
+      "url": "{{ _.base_url }}/customers/active",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_customers_get",
+      "_type": "request",
+      "parentId": "folder_customers",
+      "name": "Obtenir un client par ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/customers/CUSTOMER_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_customers_update",
+      "_type": "request",
+      "parentId": "folder_customers",
+      "name": "Modifier un client",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/customers/CUSTOMER_ID",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Entreprise ACME SARL\",\n  \"phone\": \"+33987654321\",\n  \"address\": \"456 Avenue des Champs\"\n}"
+      }
+    },
+    {
+      "_id": "req_customers_delete",
+      "_type": "request",
+      "parentId": "folder_customers",
+      "name": "Supprimer un client",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/customers/CUSTOMER_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "folder_products",
+      "_type": "request_group",
+      "parentId": "workspace",
+      "name": "📦 Produits"
+    },
+    {
+      "_id": "req_products_create",
+      "_type": "request",
+      "parentId": "folder_products",
+      "name": "Créer un produit",
+      "method": "POST",
+      "url": "{{ _.base_url }}/products",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Service de développement web\",\n  \"description\": \"Service professionnel de développement web incluant design et implémentation\",\n  \"price\": 500.00,\n  \"vatRate\": 20.0,\n  \"unit\": \"heure\",\n  \"isActive\": true\n}"
+      }
+    },
+    {
+      "_id": "req_products_list",
+      "_type": "request",
+      "parentId": "folder_products",
+      "name": "Lister tous les produits",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_products_active",
+      "_type": "request",
+      "parentId": "folder_products",
+      "name": "Lister les produits actifs",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products/active",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_products_get",
+      "_type": "request",
+      "parentId": "folder_products",
+      "name": "Obtenir un produit par ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products/PRODUCT_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_products_update",
+      "_type": "request",
+      "parentId": "folder_products",
+      "name": "Modifier un produit",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/products/PRODUCT_ID",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Service de développement web premium\",\n  \"price\": 600.00,\n  \"description\": \"Service premium incluant consultation et support\"\n}"
+      }
+    },
+    {
+      "_id": "req_products_delete",
+      "_type": "request",
+      "parentId": "folder_products",
+      "name": "Supprimer un produit",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/products/PRODUCT_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "folder_invoices",
+      "_type": "request_group",
+      "parentId": "workspace",
+      "name": "🧾 Factures"
+    },
+    {
+      "_id": "req_invoices_create",
+      "_type": "request",
+      "parentId": "folder_invoices",
+      "name": "Créer une facture",
+      "method": "POST",
+      "url": "{{ _.base_url }}/invoices",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"customerId\": \"CUSTOMER_UUID\",\n  \"issueDate\": \"2024-01-15\",\n  \"dueDate\": \"2024-02-15\",\n  \"status\": \"draft\",\n  \"notes\": \"Merci pour votre confiance !\",\n  \"paymentTerms\": \"Paiement sous 30 jours\",\n  \"items\": [\n    {\n      \"productId\": \"PRODUCT_UUID\",\n      \"quantity\": 2,\n      \"unitPrice\": 500.00,\n      \"vatRate\": 20.0,\n      \"description\": \"Service de développement personnalisé\"\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_invoices_list",
+      "_type": "request",
+      "parentId": "folder_invoices",
+      "name": "Lister toutes les factures",
+      "method": "GET",
+      "url": "{{ _.base_url }}/invoices",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_invoices_get",
+      "_type": "request",
+      "parentId": "folder_invoices",
+      "name": "Obtenir une facture par ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/invoices/INVOICE_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_invoices_update",
+      "_type": "request",
+      "parentId": "folder_invoices",
+      "name": "Modifier une facture",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/invoices/INVOICE_ID",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"notes\": \"Facture mise à jour\",\n  \"paymentTerms\": \"Paiement sous 15 jours\"\n}"
+      }
+    },
+    {
+      "_id": "req_invoices_status",
+      "_type": "request",
+      "parentId": "folder_invoices",
+      "name": "Modifier le statut d'une facture",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/invoices/INVOICE_ID/status",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"sent\"\n}"
+      }
+    },
+    {
+      "_id": "req_invoices_delete",
+      "_type": "request",
+      "parentId": "folder_invoices",
+      "name": "Supprimer une facture",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/invoices/INVOICE_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "folder_credit_notes",
+      "_type": "request_group",
+      "parentId": "workspace",
+      "name": "📄 Avoirs"
+    },
+    {
+      "_id": "req_credit_notes_create",
+      "_type": "request",
+      "parentId": "folder_credit_notes",
+      "name": "Créer un avoir",
+      "method": "POST",
+      "url": "{{ _.base_url }}/credit-notes",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"customerId\": \"CUSTOMER_UUID\",\n  \"originalInvoiceId\": \"INVOICE_UUID\",\n  \"issueDate\": \"2024-01-20\",\n  \"reason\": \"Retour de marchandise\",\n  \"notes\": \"Avoir pour retour de produit défectueux\",\n  \"items\": [\n    {\n      \"productId\": \"PRODUCT_UUID\",\n      \"quantity\": 1,\n      \"unitPrice\": 500.00,\n      \"vatRate\": 20.0,\n      \"description\": \"Service annulé\"\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_credit_notes_list",
+      "_type": "request",
+      "parentId": "folder_credit_notes",
+      "name": "Lister tous les avoirs",
+      "method": "GET",
+      "url": "{{ _.base_url }}/credit-notes",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_credit_notes_get",
+      "_type": "request",
+      "parentId": "folder_credit_notes",
+      "name": "Obtenir un avoir par ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/credit-notes/CREDIT_NOTE_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_credit_notes_update",
+      "_type": "request",
+      "parentId": "folder_credit_notes",
+      "name": "Modifier un avoir",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/credit-notes/CREDIT_NOTE_ID",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"reason\": \"Raison modifiée\",\n  \"notes\": \"Notes mises à jour\"\n}"
+      }
+    },
+    {
+      "_id": "req_credit_notes_status",
+      "_type": "request",
+      "parentId": "folder_credit_notes",
+      "name": "Modifier le statut d'un avoir",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/credit-notes/CREDIT_NOTE_ID/status",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"issued\"\n}"
+      }
+    },
+    {
+      "_id": "req_credit_notes_delete",
+      "_type": "request",
+      "parentId": "folder_credit_notes",
+      "name": "Supprimer un avoir",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/credit-notes/CREDIT_NOTE_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "folder_pdf",
+      "_type": "request_group",
+      "parentId": "workspace",
+      "name": "📄 Génération PDF"
+    },
+    {
+      "_id": "req_pdf_invoice",
+      "_type": "request",
+      "parentId": "folder_pdf",
+      "name": "Télécharger PDF facture",
+      "method": "GET",
+      "url": "{{ _.base_url }}/pdf/invoice/INVOICE_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_pdf_credit_note",
+      "_type": "request",
+      "parentId": "folder_pdf",
+      "name": "Télécharger PDF avoir",
+      "method": "GET",
+      "url": "{{ _.base_url }}/pdf/credit-note/CREDIT_NOTE_ID",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_pdf_invoice_preview",
+      "_type": "request",
+      "parentId": "folder_pdf",
+      "name": "Prévisualiser PDF facture",
+      "method": "GET",
+      "url": "{{ _.base_url }}/pdf/invoice/INVOICE_ID/preview",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_pdf_credit_note_preview",
+      "_type": "request",
+      "parentId": "folder_pdf",
+      "name": "Prévisualiser PDF avoir",
+      "method": "GET",
+      "url": "{{ _.base_url }}/pdf/credit-note/CREDIT_NOTE_ID/preview",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "folder_app",
+      "_type": "request_group",
+      "parentId": "workspace",
+      "name": "🏠 Application"
+    },
+    {
+      "_id": "req_app_hello",
+      "_type": "request",
+      "parentId": "folder_app",
+      "name": "Test de base - Hello World",
+      "method": "GET",
+      "url": "{{ _.base_url }}/"
+    }
+  ]
+}
