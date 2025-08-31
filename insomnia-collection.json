@@ -390,7 +390,7 @@
       ],
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"customerId\": \"CUSTOMER_UUID\",\n  \"issueDate\": \"2024-01-15\",\n  \"dueDate\": \"2024-02-15\",\n  \"status\": \"draft\",\n  \"notes\": \"Merci pour votre confiance !\",\n  \"paymentTerms\": \"Paiement sous 30 jours\",\n  \"items\": [\n    {\n      \"productId\": \"PRODUCT_UUID\",\n      \"quantity\": 2,\n      \"unitPrice\": 500.00,\n      \"vatRate\": 20.0,\n      \"description\": \"Service de développement personnalisé\"\n    }\n  ]\n}"
+        "text": "{\n  \"customerId\": \"CUSTOMER_UUID\",\n  \"issueDate\": \"2024-01-15\",\n  \"dueDate\": \"2024-02-15\",\n  \"status\": \"draft\",\n  \"notes\": \"Merci pour votre confiance !\",\n  \"paymentTerms\": \"Paiement sous 30 jours\",\n  \"paymentMethod\": \"cash\",\n  \"templateFacturation\": \"B2C\",\n  \"items\": [\n    {\n      \"productId\": \"PRODUCT_UUID\",\n      \"quantity\": 2,\n      \"unitPrice\": 500.00,\n      \"vatRate\": 18.0,\n      \"description\": \"Service de développement personnalisé\"\n    }\n  ]\n}"
       }
     },
     {
@@ -464,6 +464,20 @@
         "mimeType": "application/json",
         "text": "{\n  \"status\": \"sent\"\n}"
       }
+    },
+    {
+      "_id": "req_invoices_certify_fne",
+      "_type": "request",
+      "parentId": "folder_invoices",
+      "name": "Certifier une facture FNE",
+      "method": "GET",
+      "url": "{{ _.base_url }}/invoices/INVOICE_ID/certify",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.jwt_token }}"
+        }
+      ]
     },
     {
       "_id": "req_invoices_delete",

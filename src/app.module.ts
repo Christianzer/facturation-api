@@ -9,6 +9,7 @@ import { InvoicesModule } from './invoices/invoices.module';
 import { CreditNotesModule } from './credit-notes/credit-notes.module';
 import { PdfModule } from './pdf/pdf.module';
 import { DatabaseModule } from './database/database.module';
+import { FneModule } from './fne/fne.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { DatabaseModule } from './database/database.module';
     CreditNotesModule,
     PdfModule,
     DatabaseModule,
+    FneModule,
   ],
 })
 export class AppModule {}

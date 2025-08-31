@@ -5,13 +5,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
-import { Invoice, InvoiceStatus } from '../entities/invoice.entity';
+import { Invoice, InvoiceStatus, TemplateFacturation, FneStatus } from '../entities/invoice.entity';
 import { InvoiceItem } from '../entities/invoice-item.entity';
 import { CustomersService } from '../customers/customers.service';
 import { ProductsService } from '../products/products.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { User } from '../entities/user.entity';
+import { FneService } from '../fne/fne.service';
 
 @Injectable()
 export class InvoicesService {
@@ -22,6 +23,7 @@ export class InvoicesService {
     private invoiceItemsRepository: Repository<InvoiceItem>,
     private customersService: CustomersService,
     private productsService: ProductsService,
+    private fneService: FneService,
   ) {}
 
   async create(
@@ -48,12 +50,14 @@ export class InvoicesService {
       for (const itemData of createInvoiceDto.items) {
         let product: any = null;
         let unitPrice = itemData.unitPrice || 0;
-        let vatRate = itemData.vatRate || 18;
+        let vatRate = itemData.vatRate !== undefined ? itemData.vatRate : 18;
 
         if (itemData.productId) {
           product = await this.productsService.findOne(itemData.productId);
           unitPrice = itemData.unitPrice || product.price;
-          vatRate = itemData.vatRate || product.vatRate;
+          if (itemData.vatRate === undefined) {
+            vatRate = product.vatRate;
+          }
         }
 
         const itemSubtotal = unitPrice * itemData.quantity;
@@ -88,6 +92,8 @@ export class InvoicesService {
     invoice.total = subtotal + vatAmount;
     invoice.notes = createInvoiceDto.notes || null;
     invoice.paymentTerms = createInvoiceDto.paymentTerms || null;
+    invoice.paymentMethod = createInvoiceDto.paymentMethod || null;
+    invoice.templateFacturation = createInvoiceDto.templateFacturation || TemplateFacturation.B2C;
 
     const savedInvoice = await this.invoicesRepository.save(invoice);
     
@@ -150,12 +156,14 @@ export class InvoicesService {
       for (const itemData of updateInvoiceDto.items) {
         let product: any = null;
         let unitPrice = itemData.unitPrice || 0;
-        let vatRate = itemData.vatRate || 18;
+        let vatRate = itemData.vatRate !== undefined ? itemData.vatRate : 18;
 
         if (itemData.productId) {
           product = await this.productsService.findOne(itemData.productId);
           unitPrice = itemData.unitPrice || product.price;
-          vatRate = itemData.vatRate || product.vatRate;
+          if (itemData.vatRate === undefined) {
+            vatRate = product.vatRate;
+          }
         }
 
         const itemSubtotal = unitPrice * itemData.quantity;
@@ -202,6 +210,36 @@ export class InvoicesService {
     invoice.status = status;
     await this.invoicesRepository.save(invoice);
     return this.findOne(id);
+  }
+
+  async certifyWithFne(id: string): Promise<Invoice> {
+    const invoice = await this.findOne(id);
+
+    if (invoice.fneStatus === FneStatus.CERTIFIED) {
+      throw new BadRequestException('Invoice is already certified with FNE');
+    }
+
+    try {
+      const fneResponse = await this.fneService.certifyInvoice(invoice);
+
+      if (fneResponse.success && fneResponse.data) {
+        invoice.fneStatus = FneStatus.CERTIFIED;
+        invoice.fneReference = fneResponse.data.reference;
+        invoice.fneToken = fneResponse.data.token;
+        invoice.fneCertifiedAt = new Date(fneResponse.data.invoice.createdAt);
+        invoice.balanceSticker = fneResponse.data.balance_sticker;
+      } else {
+        invoice.fneStatus = FneStatus.FAILED;
+        throw new BadRequestException(`FNE certification failed: ${fneResponse.error || 'Unknown error'}`);
+      }
+
+      await this.invoicesRepository.save(invoice);
+      return this.findOne(id);
+    } catch (error) {
+      invoice.fneStatus = FneStatus.FAILED;
+      await this.invoicesRepository.save(invoice);
+      throw error;
+    }
   }
 
   private async generateInvoiceNumber(): Promise<string> {

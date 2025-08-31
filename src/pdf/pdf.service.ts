@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { jsPDF } from 'jspdf';
-import { Invoice } from '../entities/invoice.entity';
+import * as puppeteer from 'puppeteer';
+import { Invoice, PaymentMethod, TemplateFacturation, FneStatus } from '../entities/invoice.entity';
 import { CreditNote } from '../entities/credit-note.entity';
 import { InvoicesService } from '../invoices/invoices.service';
 import { CreditNotesService } from '../credit-notes/credit-notes.service';
+import { InvoiceTemplate } from './templates/invoice.template';
 
 @Injectable()
 export class PdfService {
@@ -19,10 +20,32 @@ export class PdfService {
       throw new NotFoundException('Invoice not found');
     }
 
-    const pdf = new jsPDF();
-    this.addInvoiceContent(pdf, invoice);
-
-    return Buffer.from(pdf.output('arraybuffer'));
+    const html = await InvoiceTemplate.generateHtml(invoice);
+    
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    
+    try {
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        margin: {
+          top: '20px',
+          right: '20px',
+          bottom: '20px',
+          left: '20px'
+        },
+        printBackground: true
+      });
+      
+      return Buffer.from(pdfBuffer);
+    } finally {
+      await browser.close();
+    }
   }
 
   async generateCreditNotePdf(creditNoteId: string): Promise<Buffer> {
@@ -32,209 +55,155 @@ export class PdfService {
       throw new NotFoundException('Credit note not found');
     }
 
-    const pdf = new jsPDF();
-    this.addCreditNoteContent(pdf, creditNote);
-
-    return Buffer.from(pdf.output('arraybuffer'));
-  }
-
-  private addInvoiceContent(pdf: jsPDF, invoice: Invoice): void {
-    // Header
-    pdf.setFontSize(20);
-    pdf.text('FACTURE', 20, 30);
-
-    pdf.setFontSize(12);
-    pdf.text(`Numéro: ${invoice.invoiceNumber}`, 20, 45);
-    pdf.text(
-      `Date d'émission: ${invoice.issueDate ? new Date(invoice.issueDate).toLocaleDateString('fr-FR') : 'Non définie'}`,
-      20,
-      55,
-    );
-    pdf.text(
-      `Date d'échéance: ${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('fr-FR') : 'Non définie'}`,
-      20,
-      65,
-    );
-    pdf.text(`Statut: ${this.getStatusText(invoice.status)}`, 20, 75);
-
-    // Customer Info
-    pdf.setFontSize(14);
-    pdf.text('Client:', 20, 95);
-    pdf.setFontSize(12);
-    pdf.text(invoice.customer.name, 20, 105);
-    pdf.text(invoice.customer.email, 20, 115);
-
-    if (invoice.customer.address) {
-      pdf.text(invoice.customer.address, 20, 125);
-    }
-    if (invoice.customer.city && invoice.customer.postalCode) {
-      pdf.text(
-        `${invoice.customer.postalCode} ${invoice.customer.city}`,
-        20,
-        135,
-      );
-    }
-    if (invoice.customer.vatNumber) {
-      pdf.text(`N° TVA: ${invoice.customer.vatNumber}`, 20, 145);
-    }
-
-    // Items table header
-    let yPosition = 170;
-    pdf.setFontSize(12);
-    pdf.text('Description', 20, yPosition);
-    pdf.text('Qté', 100, yPosition);
-    pdf.text('Prix HT', 130, yPosition);
-    pdf.text('TVA', 160, yPosition);
-    pdf.text('Total TTC', 180, yPosition);
-
-    // Draw line under header
-    pdf.line(20, yPosition + 3, 200, yPosition + 3);
-    yPosition += 15;
-
-    // Items
-    if (invoice.items && invoice.items.length > 0) {
-      invoice.items.forEach((item) => {
-        pdf.setFontSize(10);
-        const description =
-          item.description || (item.product ? item.product.name : 'Service');
-        pdf.text(description, 20, yPosition);
-        pdf.text(item.quantity.toString(), 100, yPosition);
-        pdf.text(`${Number(item.unitPrice).toFixed(2)}FCFA`, 130, yPosition);
-        pdf.text(`${Number(item.vatRate).toFixed(1)}%`, 160, yPosition);
-        pdf.text(`${Number(item.total).toFixed(2)}FCFA`, 180, yPosition);
-        yPosition += 12;
+    const html = this.generateCreditNoteHtml(creditNote);
+    
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    
+    try {
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        margin: {
+          top: '20px',
+          right: '20px',
+          bottom: '20px',
+          left: '20px'
+        },
+        printBackground: true
       });
-    }
-
-    // Totals
-    yPosition += 10;
-    pdf.line(20, yPosition, 200, yPosition);
-    yPosition += 15;
-
-    pdf.setFontSize(12);
-    pdf.text('Sous-total HT:', 130, yPosition);
-    pdf.text(`${Number(invoice.subtotal).toFixed(2)}FCFA`, 180, yPosition);
-    yPosition += 12;
-
-    pdf.text('TVA:', 130, yPosition);
-    pdf.text(`${Number(invoice.vatAmount).toFixed(2)}FCFA`, 180, yPosition);
-    yPosition += 12;
-
-    pdf.setFontSize(14);
-    pdf.text('Total TTC:', 130, yPosition);
-    pdf.text(`${Number(invoice.total).toFixed(2)}FCFA`, 180, yPosition);
-
-    // Notes
-    if (invoice.notes) {
-      yPosition += 25;
-      pdf.setFontSize(12);
-      pdf.text('Notes:', 20, yPosition);
-      yPosition += 10;
-      pdf.setFontSize(10);
-      const splitNotes = pdf.splitTextToSize(invoice.notes, 170);
-      pdf.text(splitNotes, 20, yPosition);
-    }
-
-    // Payment terms
-    if (invoice.paymentTerms) {
-      yPosition += invoice.notes ? 20 : 25;
-      pdf.setFontSize(12);
-      pdf.text('Conditions de paiement:', 20, yPosition);
-      yPosition += 10;
-      pdf.setFontSize(10);
-      const splitTerms = pdf.splitTextToSize(invoice.paymentTerms, 170);
-      pdf.text(splitTerms, 20, yPosition);
+      
+      return Buffer.from(pdfBuffer);
+    } finally {
+      await browser.close();
     }
   }
 
-  private addCreditNoteContent(pdf: jsPDF, creditNote: CreditNote): void {
-    // Header
-    pdf.setFontSize(20);
-    pdf.text('AVOIR', 20, 30);
+  private generateCreditNoteHtml(creditNote: CreditNote): string {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .credit-note-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .info-section h3 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .totals {
+            margin-top: 20px;
+            float: right;
+            width: 300px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .total-final {
+            background: #e74c3c;
+            color: white;
+            padding: 10px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="credit-note-title">AVOIR</div>
+    </div>
 
-    pdf.setFontSize(12);
-    pdf.text(`Numéro: ${creditNote.creditNoteNumber}`, 20, 45);
-    pdf.text(
-      `Date d'émission: ${new Date(creditNote.issueDate).toLocaleDateString('fr-FR')}`,
-      20,
-      55,
-    );
-    pdf.text(
-      `Statut: ${this.getCreditNoteStatusText(creditNote.status)}`,
-      20,
-      65,
-    );
+    <div class="info-grid">
+        <div class="info-section">
+            <h3>INFORMATIONS AVOIR</h3>
+            <div><strong>Numéro:</strong> ${creditNote.creditNoteNumber}</div>
+            <div><strong>Date d'émission:</strong> ${new Date(creditNote.issueDate).toLocaleDateString('fr-FR')}</div>
+            <div><strong>Statut:</strong> ${this.getCreditNoteStatusText(creditNote.status)}</div>
+            ${creditNote.invoice ? `<div><strong>Facture associée:</strong> ${creditNote.invoice.invoiceNumber}</div>` : ''}
+        </div>
+        
+        <div class="info-section">
+            <h3>CLIENT</h3>
+            <div><strong>${creditNote.customer.name}</strong></div>
+            <div>${creditNote.customer.email}</div>
+            ${creditNote.customer.address ? `<div>${creditNote.customer.address}</div>` : ''}
+            ${creditNote.customer.city && creditNote.customer.postalCode ? `<div>${creditNote.customer.postalCode} ${creditNote.customer.city}</div>` : ''}
+        </div>
+    </div>
 
-    // Customer Info
-    pdf.setFontSize(14);
-    pdf.text('Client:', 20, 85);
-    pdf.setFontSize(12);
-    pdf.text(creditNote.customer.name, 20, 95);
-    pdf.text(creditNote.customer.email, 20, 105);
+    <div class="info-section" style="margin-bottom: 20px;">
+        <h3>MOTIF</h3>
+        <p>${creditNote.reason}</p>
+    </div>
 
-    if (creditNote.customer.address) {
-      pdf.text(creditNote.customer.address, 20, 115);
-    }
-    if (creditNote.customer.city && creditNote.customer.postalCode) {
-      pdf.text(
-        `${creditNote.customer.postalCode} ${creditNote.customer.city}`,
-        20,
-        125,
-      );
-    }
+    <div class="totals">
+        <div class="total-row">
+            <span>Montant HT:</span>
+            <span>${this.formatPrice(Number(creditNote.amount))}</span>
+        </div>
+        <div class="total-row">
+            <span>TVA:</span>
+            <span>${this.formatPrice(Number(creditNote.vatAmount))}</span>
+        </div>
+        <div class="total-row total-final">
+            <span>TOTAL TTC:</span>
+            <span>${this.formatPrice(Number(creditNote.total))}</span>
+        </div>
+    </div>
 
-    // Invoice reference
-    if (creditNote.invoice) {
-      pdf.text(
-        `Facture associée: ${creditNote.invoice.invoiceNumber}`,
-        20,
-        145,
-      );
-    }
+    <div style="clear: both;"></div>
 
-    // Reason
-    pdf.setFontSize(14);
-    pdf.text('Motif:', 20, 165);
-    pdf.setFontSize(12);
-    const splitReason = pdf.splitTextToSize(creditNote.reason, 170);
-    pdf.text(splitReason, 20, 175);
+    ${creditNote.notes ? `
+    <div class="info-section" style="margin-top: 30px;">
+        <h3>NOTES</h3>
+        <p>${creditNote.notes}</p>
+    </div>
+    ` : ''}
 
-    // Amounts
-    let yPosition = 200;
-    pdf.setFontSize(12);
-    pdf.text('Montant HT:', 130, yPosition);
-    pdf.text(`${Number(creditNote.amount).toFixed(2)}FCFA`, 180, yPosition);
-    yPosition += 12;
-
-    pdf.text('TVA:', 130, yPosition);
-    pdf.text(`${Number(creditNote.vatAmount).toFixed(2)}FCFA`, 180, yPosition);
-    yPosition += 12;
-
-    pdf.setFontSize(14);
-    pdf.text('Total TTC:', 130, yPosition);
-    pdf.text(`${Number(creditNote.total).toFixed(2)}FCFA`, 180, yPosition);
-
-    // Notes
-    if (creditNote.notes) {
-      yPosition += 25;
-      pdf.setFontSize(12);
-      pdf.text('Notes:', 20, yPosition);
-      yPosition += 10;
-      pdf.setFontSize(10);
-      const splitNotes = pdf.splitTextToSize(creditNote.notes, 170);
-      pdf.text(splitNotes, 20, yPosition);
-    }
+    <div style="text-align: center; margin-top: 50px; font-size: 10px; color: #666;">
+        <p>Avoir généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
+        <p>ID: ${creditNote.id}</p>
+    </div>
+</body>
+</html>
+    `;
   }
 
-  private getStatusText(status: string): string {
-    const statusMap = {
-      draft: 'Brouillon',
-      sent: 'Envoyée',
-      paid: 'Payée',
-      overdue: 'En retard',
-      cancelled: 'Annulée',
-    };
-    return statusMap[status] || status;
+  private formatPrice(amount: number): string {
+    return new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount) + ' FCFA';
   }
 
   private getCreditNoteStatusText(status: string): string {

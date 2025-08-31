@@ -21,6 +21,28 @@ export enum InvoiceStatus {
   CANCELLED = 'cancelled',
 }
 
+export enum FneStatus {
+  DRAFT = 'draft',
+  CERTIFIED = 'certified',
+  FAILED = 'failed',
+}
+
+export enum PaymentMethod {
+  CASH = 'cash',
+  MOBILE_MONEY = 'mobile-money',
+  CARD = 'card',
+  CHECK = 'chek',
+  TRANSFER = 'transfert',
+  DEFERRED = 'deferred',
+}
+
+export enum TemplateFacturation {
+  B2C = 'B2C',
+  B2B = 'B2B',
+  B2G = 'B2G',
+  B2F = 'B2F',
+}
+
 @Entity('invoices')
 export class Invoice {
   @PrimaryGeneratedColumn('uuid')
@@ -74,6 +96,27 @@ export class Invoice {
 
   @OneToMany(() => CreditNote, (creditNote) => creditNote.invoice)
   creditNotes: CreditNote[];
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  fneReference: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  fneToken: string | null;
+
+  @Column({ type: 'enum', enum: FneStatus, default: FneStatus.DRAFT })
+  fneStatus: FneStatus;
+
+  @Column({ type: 'timestamp', nullable: true })
+  fneCertifiedAt: Date | null;
+
+  @Column({ type: 'int', nullable: true })
+  balanceSticker: number | null;
+
+  @Column({ type: 'enum', enum: PaymentMethod, nullable: true })
+  paymentMethod: PaymentMethod | null;
+
+  @Column({ type: 'enum', enum: TemplateFacturation, default: TemplateFacturation.B2C })
+  templateFacturation: TemplateFacturation;
 
   @CreateDateColumn()
   createdAt: Date;

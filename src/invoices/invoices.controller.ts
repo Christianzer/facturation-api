@@ -77,6 +77,15 @@ export class InvoicesController {
     return this.invoicesService.updateStatus(id, updateStatusDto.status);
   }
 
+  @ApiOperation({ summary: 'Certify invoice with FNE' })
+  @ApiResponse({ status: 200, description: 'Invoice certified successfully with FNE' })
+  @ApiResponse({ status: 404, description: 'Invoice not found' })
+  @ApiResponse({ status: 400, description: 'FNE certification failed' })
+  @Get(':id/certify')
+  certifyWithFne(@Param('id') id: string) {
+    return this.invoicesService.certifyWithFne(id);
+  }
+
   @ApiOperation({ summary: 'Delete invoice' })
   @ApiResponse({ status: 200, description: 'Invoice deleted successfully' })
   @ApiResponse({ status: 404, description: 'Invoice not found' })

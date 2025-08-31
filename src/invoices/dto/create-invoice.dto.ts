@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { InvoiceStatus } from '../../entities/invoice.entity';
+import { InvoiceStatus, PaymentMethod, TemplateFacturation } from '../../entities/invoice.entity';
 
 export class CreateInvoiceItemDto {
   @ApiPropertyOptional({ example: 'uuid-product-id' })
@@ -83,4 +83,14 @@ export class CreateInvoiceDto {
   @ValidateNested({ each: true })
   @Type(() => CreateInvoiceItemDto)
   items?: CreateInvoiceItemDto[];
+
+  @ApiPropertyOptional({ enum: PaymentMethod, example: PaymentMethod.CASH })
+  @IsOptional()
+  @IsEnum(PaymentMethod)
+  paymentMethod?: PaymentMethod;
+
+  @ApiPropertyOptional({ enum: TemplateFacturation, example: TemplateFacturation.B2C })
+  @IsOptional()
+  @IsEnum(TemplateFacturation)
+  templateFacturation?: TemplateFacturation;
 }

@@ -6,12 +6,14 @@ import { Invoice } from '../entities/invoice.entity';
 import { InvoiceItem } from '../entities/invoice-item.entity';
 import { CustomersModule } from '../customers/customers.module';
 import { ProductsModule } from '../products/products.module';
+import { FneModule } from '../fne/fne.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Invoice, InvoiceItem]),
     CustomersModule,
     ProductsModule,
+    FneModule,
   ],
   controllers: [InvoicesController],
   providers: [InvoicesService],

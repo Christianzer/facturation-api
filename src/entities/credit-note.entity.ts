@@ -20,6 +20,12 @@ export enum CreditNoteStatus {
   CANCELLED = 'cancelled',
 }
 
+export enum FneStatus {
+  DRAFT = 'draft',
+  CERTIFIED = 'certified',
+  FAILED = 'failed',
+}
+
 @Entity('credit_notes')
 export class CreditNote {
   @PrimaryGeneratedColumn('uuid')
@@ -80,6 +86,21 @@ export class CreditNote {
     cascade: true,
   })
   items: CreditNoteItem[];
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  fneReference: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  fneToken: string | null;
+
+  @Column({ type: 'enum', enum: FneStatus, default: FneStatus.DRAFT })
+  fneStatus: FneStatus;
+
+  @Column({ type: 'timestamp', nullable: true })
+  fneCertifiedAt: Date | null;
+
+  @Column({ type: 'int', nullable: true })
+  balanceSticker: number | null;
 
   @CreateDateColumn()
   createdAt: Date;
