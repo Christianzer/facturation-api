@@ -6,9 +6,43 @@ import {
   IsUUID,
   IsNumber,
   Min,
+  IsArray,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export class CreateCreditNoteItemDto {
+  @ApiPropertyOptional({ example: 'uuid-product-id' })
+  @IsOptional()
+  @IsUUID()
+  productId?: string;
+
+  @ApiProperty({ example: 2 })
+  @IsNumber()
+  @Min(1)
+  @Type(() => Number)
+  quantity: number;
+
+  @ApiPropertyOptional({ example: 500000.0 })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  @Type(() => Number)
+  unitPrice?: number;
+
+  @ApiPropertyOptional({ example: 10.0 })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  @Type(() => Number)
+  vatRate?: number;
+
+  @ApiPropertyOptional({ example: 'Description personnalisée du service' })
+  @IsOptional()
+  @IsString()
+  description?: string;
+}
 
 export class CreateCreditNoteDto {
   @ApiProperty({ example: 'uuid-customer-id' })
@@ -26,25 +60,34 @@ export class CreateCreditNoteDto {
   @IsNotEmpty()
   issueDate: string;
 
-  @ApiProperty({ example: 500.0 })
+  @ApiPropertyOptional({ example: 500000.0 })
+  @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   @Type(() => Number)
-  amount: number;
+  amount?: number;
 
-  @ApiProperty({ example: 100.0 })
+  @ApiPropertyOptional({ example: 50000.0 })
+  @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   @Type(() => Number)
-  vatAmount: number;
+  vatAmount?: number;
 
   @ApiProperty({ example: 'Product return' })
   @IsString()
   @IsNotEmpty()
   reason: string;
 
-  @ApiPropertyOptional({ example: 'Additional notes about the credit note' })
+  @ApiPropertyOptional({ example: 'Notes supplémentaires sur l\'avoir' })
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @ApiPropertyOptional({ type: [CreateCreditNoteItemDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateCreditNoteItemDto)
+  items?: CreateCreditNoteItemDto[];
 }

@@ -5,11 +5,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Customer } from './customer.entity';
 import { Invoice } from './invoice.entity';
+import { CreditNoteItem } from './credit-note-item.entity';
 
 export enum CreditNoteStatus {
   DRAFT = 'draft',
@@ -49,7 +51,7 @@ export class CreditNote {
   reason: string;
 
   @Column({ type: 'text', nullable: true })
-  notes: string;
+  notes: string | null;
 
   @ManyToOne(() => User, (user) => user.creditNotes)
   @JoinColumn({ name: 'userId' })
@@ -72,7 +74,12 @@ export class CreditNote {
   invoice: Invoice;
 
   @Column({ nullable: true })
-  invoiceId: string;
+  invoiceId: string | null;
+
+  @OneToMany(() => CreditNoteItem, (creditNoteItem) => creditNoteItem.creditNote, {
+    cascade: true,
+  })
+  items: CreditNoteItem[];
 
   @CreateDateColumn()
   createdAt: Date;

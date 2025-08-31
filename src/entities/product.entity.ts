@@ -7,6 +7,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { InvoiceItem } from './invoice-item.entity';
+import { CreditNoteItem } from './credit-note-item.entity';
 
 @Entity('products')
 export class Product {
@@ -33,6 +34,9 @@ export class Product {
 
   @OneToMany(() => InvoiceItem, (invoiceItem) => invoiceItem.product)
   invoiceItems: InvoiceItem[];
+
+  @OneToMany(() => CreditNoteItem, (creditNoteItem) => creditNoteItem.product)
+  creditNoteItems: CreditNoteItem[];
 
   @CreateDateColumn()
   createdAt: Date;
